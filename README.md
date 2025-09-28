@@ -25,3 +25,5 @@ Upwards of 54% ROC-AUC
 When the model predicts a price increase, precision describes how accurate that prediction is. While 57% precision and 54% ROC-AUC doesn't seem that good, it indicates that the model actually works and has accurate price increase predictions the majority of the time. Considering how noisy and random stock market data is and how hard it is to predict the future, this model has found some patterns in the data.
 
 Consider running this for yourself on different stocks, doing your own optimizing, and changing any of the techniques I've mentioned above to attempt to improve the model performance. There is definitely still more performance that can be gained, especially adding more stock market indicators to the model.
+
+To get a reliable precision number, make sure the number of predictions being made during testing is significant and not too low (a few hundred predictions at least). Too high of a prediction rate (20 to 30% or more) is nice, but it may result in lower precision. Try and find the optimal prediction rate and precision. Try adjusting the predict_span, threshold, max_depth, and min_samples_split in the Stock class.
