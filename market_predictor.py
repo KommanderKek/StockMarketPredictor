@@ -13,42 +13,14 @@ g_apikey = ""
 
 # Static class for calculations
 class Utility:
-  ## returns change between data points as a percentage
-  ## new: newest data point
-  # old: previous data point
+    ## returns change between data points as a percentage
+    ## new: newest data point
+    # old: previous data point
     def percent_change(new, old) -> float:
         return 100 * (new - old) / old
     
-    ## simple moving average of list data
-    # period: number of previous elements to calculate over
-    # end_point: last element in data list to not include
-    def SMA(period, price_data, end_point) -> float:
-        SMA = 0
-        for i in range(period):
-            price = float(price_data[end_point - period + i])
-            SMA += price
-        return SMA / period
-    
-    ## relative strength index of list data
-    # period: number of previous elements to calculate over
-    # end_point: last element index in data list to not include
-    def RSI(period, price_data, end_point) -> float:
-        gain = 0
-        loss = 0
-        for i in range(period):
-            price = float(price_data[end_point - period + i])
-            previous_price = float(price_data[end_point - period + i - 1])
-            if price > previous_price:
-                gain += price - previous_price
-            elif previous_price > price:
-                loss += previous_price - price
-        average_gain = gain / period
-        average_loss = loss / period
-        RSI = 100
-        if average_loss != 0:
-            RS = average_gain / average_loss
-            RSI = 100 - 100 / (1 + RS)
-        return RSI
+    def log_change(new, old) -> float:
+        return 100 * np.log(new / old)
 
 # Static class for user input
 class UserInput:
@@ -113,6 +85,7 @@ class Stock:
         self.symbol = symbol
         self.price_data = []
         self.volume_data = []
+        self.time_data = []
         self.features = []
         self.labels = []
 
@@ -123,9 +96,9 @@ class Stock:
         self.predict_span = 12 # 12 5 minute intervals -> 1 hour
         self.threshold = 0.5
 
-        estimators = 2000
+        estimators = 1800
         jobs = 100
-        depth = 18
+        depth = 17
         samples_split = 5
         weight = 'balanced_subsample'
         self.rfc = RandomForestClassifier(
@@ -142,7 +115,8 @@ class Stock:
         today = str(date.today())[:7]
         current_year = int(today[:4])
         current_month = int(today[5:])
-        while self.time_span > 0:
+        time_span = self.time_span
+        while time_span > 0:
             if current_month <= 0:
                 current_month = 12
                 current_year -= 1
@@ -151,7 +125,7 @@ class Stock:
             else:
                 months.append(str(current_year) + "-" + str(current_month))
             current_month -= 1
-            self.time_span -= 1
+            time_span -= 1
         request_params  = "function=TIME_SERIES_INTRADAY"
         request_params += f"&symbol={self.symbol}"
         request_params += f"&interval={self.time_interval}min"
@@ -198,13 +172,19 @@ class Stock:
     def set_data(self, stock_data):
         self.price_data = []
         self.volume_data = []
+        self.time_data = []
         for key in stock_data:
             self.price_data.append(float(stock_data[key]["4. close"]))
             self.volume_data.append(float(stock_data[key]["5. volume"]))
+            month = int(str(key)[5:7])
+            day = int(str(key)[8:10])
+            time = int(str(key)[11:13]) + int(str(key)[14:16]) / 60
+            self.time_data.append([month, day, time])
 
         # Time series data is backwards and must be reversed
         self.price_data.reverse()
         self.volume_data.reverse()
+        self.time_data.reverse()
 
     ## Creates the training set from price and volume data
     def create_training_set(self):
@@ -222,19 +202,10 @@ class Stock:
             for t in range(self.intervals):
                 sample.append(self.price_data[t + time_offset])
 
-            # Append SMA and RSI data
-            sample.append(Utility.SMA(10, self.price_data,
-                                      self.intervals + time_offset))
-            sample.append(Utility.SMA(20, self.price_data,
-                                      self.intervals + time_offset))
-            sample.append(Utility.SMA(50, self.price_data,
-                                      self.intervals + time_offset))
-            sample.append(Utility.RSI(10, self.price_data,
-                                      self.intervals + time_offset))
-            
-            # Append RSI data
-            for t in range(12):
-                sample.append(self.volume_data[self.intervals + time_offset - 12 + t])
+            # Append volume data
+            volume_intervals = self.intervals
+            for t in range(volume_intervals):
+                sample.append(self.volume_data[self.intervals + time_offset - volume_intervals + t])
 
             # Append classification
             price_now = self.price_data[self.intervals - 1 + time_offset]
@@ -254,15 +225,16 @@ class Stock:
         # Change price and volume data in each sample to percent change
         # rather than absolute value
         training_set = pd.DataFrame(training_set, dtype = pd.Float64Dtype())
-        for col in range(training_set.shape[1] - 18):
+        for col in range(self.intervals - 1):
             initial = training_set.iloc[:, col]
             final = training_set.iloc[:, col + 1]
-            training_set.iloc[:, col] = Utility.percent_change(final, initial)
-        for col in range(training_set.shape[1] - 13, training_set.shape[1] - 2):
+            training_set.iloc[:, col] = Utility.log_change(final, initial)
+        for col in range(self.intervals, self.intervals + volume_intervals - 1):
             initial = training_set.iloc[:, col]
             final = training_set.iloc[:, col + 1]
-            training_set.iloc[:, col] = Utility.percent_change(final, initial)
+            training_set.iloc[:, col] = Utility.log_change(final, initial)
         print("Training set:", training_set.shape)
+        print("Class 1:", sum(training_set.iloc[:,training_set.shape[1] - 1]))
         print()
 
         # Separate features and labels
@@ -273,8 +245,8 @@ class Stock:
     def test(self):
         # Determine index to split the samples into training and testing
         # sets based off of the train_fraction
-        print("Testing model performance")
-        train_fraction = 0.85
+        print("Testing model performance...")
+        train_fraction = 0.80
         use_sample_weights = False
         split_index = int(round(self.features.shape[0] * train_fraction))
         print("Train:", split_index, "samples")
@@ -316,26 +288,21 @@ class Stock:
 
     ## Predicts price increase using most recently acquired data
     def predict(self):
-
         # Create a sample from most recent data
         print("Predicting...")
         stock = []
         for time in range(self.intervals):
             stock.append(self.price_data[len(self.price_data) - self.intervals + time])
-        stock.append(Utility.SMA(10, self.price_data, len(self.price_data)))
-        stock.append(Utility.SMA(20, self.price_data, len(self.price_data)))
-        stock.append(Utility.SMA(50, self.price_data, len(self.price_data)))
-        stock.append(Utility.RSI(10, self.price_data, len(self.price_data)))
-        for time in range(12):
-            stock.append(self.volume_data[len(self.price_data) - 12 + time])
-        for t in range(len(stock) - 17):
+        for time in range(self.intervals):
+            stock.append(self.volume_data[len(self.price_data) - self.intervals + time])
+        for t in range(self.intervals - 1):
             final = stock[t + 1]
             initial = stock[t]
-            stock[t] = Utility.percent_change(final, initial)
-        for t in range(len(stock) - 12, len(stock) - 1):
+            stock[t] = Utility.log_change(final, initial)
+        for t in range(self.intervals, self.intervals * 2 - 1):
             final = stock[t + 1]
             initial = stock[t]
-            stock[t] = Utility.percent_change(final, initial)
+            stock[t] = Utility.log_change(final, initial)
         stock = [stock]
 
         # Predict price increase
