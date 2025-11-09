@@ -18,8 +18,6 @@ The reason that only price and volume data is included in the model is because, 
 
 Because we want the model to learn how past price fluctuations determine the probability of future price increases, we want the price and volume data in each sample to be a percent change rather than the absolute value. Percent change however is very dependent on initial values and don't add well. So instead, I use log change because they can be properly added and percent gains and losses are properly symmetric. Except for the most recent price and volume data, all data is a log change from the previous 5 minute value.
 
-For the ADT stock, for a price increase threshold of 0.5%, I've optimized the model to 2000 estimators, max_depth of 18, min_samples_split of 5, and a 'balanced_subsample' class_weight.
-
 The following is the performance results that the model can realistically achieve:
 
 Upwards of 57% precision
