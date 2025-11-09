@@ -14,7 +14,7 @@ The model training set is currently set-up as 156 feature columns and 1 classifi
 
 The model uses 5 minute intraday closing price data over the last 4 years, corresponding to about 77,000 samples. The first half of the features used in the model (78 columns) are the time series closing price data for that sample over the last day (6.5 trading hours). The next set of features is the volume data over the same time period.
 
-The reason that only price and volume data is included in the model is because, based off of my testing, that's all you need for the model to learn. Adding in calculated stock signals or even time data seems to add unnecessary noise that the model learns, and model performance decreases.
+The reason that only price and volume data is included in the model is because, based off of my testing, that's all you need for the model to learn. Adding in calculated stock signals or even time data seems to add unnecessary noise that the model learns, resulting in decreased model performance.
 
 Because we want the model to learn how past price fluctuations determine the probability of future price increases, we want the price and volume data in each sample to be a percent change rather than the absolute value. Percent change however is very dependent on initial values and don't add well. So instead, I use log change because they can be properly added and percent gains and losses are properly symmetric. Except for the most recent price and volume data, all data is a log change from the previous 5 minute value.
 
