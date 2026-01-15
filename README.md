@@ -2,7 +2,7 @@
 
 ## Introduction and usage
 
-This program uses a random forest classifier from the sklearn python library to predict future stock price increases. For use, the file should be run directly in a terminal.
+This program uses a random forest classifier from the sklearn python library to predict future stock price increases. For use, market_predictor.py should be run directly in a terminal.
 
 When running the file, enter in the symbol of the stock you want the model to train on, query new data (or load saved data if already queried), and then choose whether to test the model performance or predict a future price increase.
 
