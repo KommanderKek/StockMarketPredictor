@@ -2,21 +2,32 @@
 
 ## Introduction and usage
 
-This program uses a random forest classifier from the sklearn python library to predict future stock price increases. For use, market_predictor.py should be run directly in a terminal.
+This program uses a random forest classifier from the scikit-learn python library to predict future stock price increases. For use, market_predictor.py should be run directly in a terminal.
 
-When running the file, enter in the symbol of the stock you want the model to train on, query new data (or load saved data if already queried), and then choose whether to test the model performance or predict a future price increase.
+### When running the file:
+- Enter the symbol of the stock you want the model to train on
+- Query new data (or load saved data if already queried)
+- Choose whether to test the model performance or predict a future price increase
 
 To query stock market data, the program uses the Alpha Vantage API. You must enter in your Alpha Vantage API key to use the program. The api key can be obtained for free and can be used to do your own model testing, but if you want to get real time data and do real time predictions, you need the paid premium alpha vantage subscription (or modify the program and use your own favorite stock market API).
 
 ## Model description
 
-The model training set is currently set-up as 156 feature columns and 1 classification column. The classification is either 1 (price increases above a particular percent change threshold without decreasing by the same threshold within an hour) or the classification is 0 (price does not increase beyond that threshold or instead decreases by that threshold first).
+My model uses 5 minute intraday closing price data over the last 4 years, corresponding to about 77,000 samples.
 
-The model uses 5 minute intraday closing price data over the last 4 years, corresponding to about 77,000 samples. The first half of the features used in the model (78 columns) are the time series closing price data for that sample over the last day (6.5 trading hours). The next set of features is the volume data over the same time period.
+### Training set:
 
-The reason that only price and volume data is included in the model is because, based off of my testing, that's all you need for the model to learn. Adding in calculated stock signals or even time data seems to add unnecessary noise that the model learns, resulting in decreased model performance.
+- ~77,000 rows
+- 156 feature columns
+  - First 78 columns are closing price data over the last day (6.5 trading hours)
+  - Second 78 columns are volume data over the same period
+- 1 Binary classification column [0,1]
+  - Class = 1 means price increases above a particular percent change threshold without decreasing by the same threshold within an hour
+  - Class = 0 means price does not increase beyond that threshold or instead decreases by that threshold first
 
-Because we want the model to learn how past price fluctuations determine the probability of future price increases, we want the price and volume data in each sample to be a percent change rather than the absolute value. Percent change however is very dependent on initial values and don't add well. So instead, I use log change because they can be properly added and percent gains and losses are properly symmetric. Except for the most recent price and volume data, all data is a log change from the previous 5 minute value.
+The reason that only price and volume data is included in the model is because, based off of my testing, that's all you need for the model to learn. Adding in calculated stock signals or even time data seems to add unnecessary noise, resulting in decreased model performance.
+
+Because we want the model to learn how past price fluctuations determine the probability of future price increases, we want the price and volume data in each sample to be a percent change rather than absolute values. Percent changes however are very dependent on initial values and don't add together well when representing change over multiple intraday periods. So instead, I use log change so that time series data percent gains and losses are properly symmetric. Except for the most recent price and volume data points, which are just absolute values, all data points are log changes between the 5 minute intraday periods.
 
 ## Results
 
