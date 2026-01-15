@@ -13,7 +13,7 @@ To query stock market data, the program uses the Alpha Vantage API. You must ent
 
 ## Model description
 
-My model uses 5 minute intraday closing price data over the last 4 years, corresponding to about 77,000 samples.
+My model uses 5 minute intraday closing price and volume data over the last 4 years, corresponding to about 77,000 samples.
 
 ### Training set:
 
