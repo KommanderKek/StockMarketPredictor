@@ -9,7 +9,7 @@ This program uses a random forest classifier from the scikit-learn python librar
 - Query new data (or load saved data if already queried)
 - Choose whether to test the model performance or predict a future price increase
 
-To query stock market data, the program uses the Alpha Vantage API. You must enter in your Alpha Vantage API key to use the program. The api key can be obtained for free and can be used to do your own model testing, but if you want to get real time data and do real time predictions, you need the paid premium alpha vantage subscription (or modify the program and use your own favorite stock market API).
+To query stock market data, the program uses the Alpha Vantage API. You must enter in your Alpha Vantage API key to use the program. The API key can be obtained for free and can be used to do your own model testing, but if you want to get real time data and do real time predictions, you need the paid premium alpha vantage subscription (or modify the program and use your own favorite stock market API).
 
 ## Model description
 
