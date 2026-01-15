@@ -20,11 +20,11 @@ Because we want the model to learn how past price fluctuations determine the pro
 
 ## Results
 
-The following is the performance results that the model can realistically achieve:
+### The following is the performance results that the model can realistically achieve:
 
-Upwards of 57% precision  
-Upwards of 80% accuracy  
-Upwards of 54% ROC-AUC
+- Upwards of 57% precision
+- Upwards of 80% accuracy  
+- Upwards of 54% ROC-AUC
 
 When the model predicts a price increase, precision describes how accurate that prediction is. While 57% precision and 54% ROC-AUC doesn't seem that good, it indicates that the model actually works and has accurate price increase predictions the majority of the time. Considering how noisy and random stock market data is and how hard it is to predict the future, this model has found some patterns in the data.
 
