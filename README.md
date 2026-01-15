@@ -1,6 +1,6 @@
-# StockMarketPredictor
+# Stock Market Predictor
 
-Running the code:
+## Introduction and usage
 
 This program uses a random forest classifier from the sklearn python library to predict future stock price increases. For use, the file should be run directly in a terminal.
 
@@ -8,7 +8,7 @@ When running the file, enter in the symbol of the stock you want the model to tr
 
 To query stock market data, the program uses the Alpha Vantage API. You must enter in your Alpha Vantage API key to use the program. The api key can be obtained for free and can be used to do your own model testing, but if you want to get real time data and do real time predictions, you need the paid premium alpha vantage subscription (or modify the program and use your own favorite stock market API).
 
-Model description:
+## Model description
 
 The model training set is currently set-up as 156 feature columns and 1 classification column. The classification is either 1 (price increases above a particular percent change threshold without decreasing by the same threshold within an hour) or the classification is 0 (price does not increase beyond that threshold or instead decreases by that threshold first).
 
@@ -17,6 +17,8 @@ The model uses 5 minute intraday closing price data over the last 4 years, corre
 The reason that only price and volume data is included in the model is because, based off of my testing, that's all you need for the model to learn. Adding in calculated stock signals or even time data seems to add unnecessary noise that the model learns, resulting in decreased model performance.
 
 Because we want the model to learn how past price fluctuations determine the probability of future price increases, we want the price and volume data in each sample to be a percent change rather than the absolute value. Percent change however is very dependent on initial values and don't add well. So instead, I use log change because they can be properly added and percent gains and losses are properly symmetric. Except for the most recent price and volume data, all data is a log change from the previous 5 minute value.
+
+## Results
 
 The following is the performance results that the model can realistically achieve:
 
@@ -28,7 +30,7 @@ Upwards of 54% ROC-AUC
 
 When the model predicts a price increase, precision describes how accurate that prediction is. While 57% precision and 54% ROC-AUC doesn't seem that good, it indicates that the model actually works and has accurate price increase predictions the majority of the time. Considering how noisy and random stock market data is and how hard it is to predict the future, this model has found some patterns in the data.
 
-Do your own testing:
+## Do your own testing:
 
 Consider running this for yourself on different stocks, doing your own optimizing, and changing any of the parameters or general techniques I've mentioned above to attempt to improve the model performance.
 
